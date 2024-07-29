@@ -28,7 +28,7 @@ def train(make_agent, make_replay, make_env, make_logger, args):
   should_train = embodied.when.Ratio(args.train_ratio / batch_steps)
   should_log = embodied.when.Clock(args.log_every)
   should_eval = embodied.when.Clock(args.eval_every)
-  should_save = embodied.when.Clock(args.save_every)
+  should_save = embodied.when.Every(args.save_every)
 
   @embodied.timer.section('log_step')
   def log_step(tran, worker):
@@ -91,7 +91,7 @@ def train(make_agent, make_replay, make_env, make_logger, args):
       agg.add(mets, prefix='train')
   driver.on_step(train_step)
 
-  checkpoint = embodied.Checkpoint(logdir / 'checkpoint.ckpt')
+  checkpoint = embodied.Checkpoint(logdir / 'checkpoints' / 'checkpoint_0.ckpt')
   checkpoint.step = step
   checkpoint.agent = agent
   checkpoint.replay = replay
@@ -123,6 +123,7 @@ def train(make_agent, make_replay, make_env, make_logger, args):
       logger.write()
 
     if should_save(step):
-      checkpoint.save()
+      episode = driver.envs[0].env.env.env.env._episode
+      checkpoint.save(logdir / 'checkpoints' / f'checkpoint_{episode}.ckpt')
 
   logger.close()
