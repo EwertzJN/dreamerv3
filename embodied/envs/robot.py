@@ -135,7 +135,7 @@ class MultiRobotEnv(embodied.Env):
     stats = {
         'episode': self._episode,
         'length': length,
-        'reward': round(reward, 1),
+        'reward': reward,
         'is_success': self.success(),
     }
     filename = self._logdir / 'stats.jsonl'
