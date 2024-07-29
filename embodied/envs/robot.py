@@ -108,12 +108,12 @@ class MultiRobotEnv(embodied.Env):
       return self._obs(image, 0.0, is_first=True)
     for k in range(self.action_repeat):
       state, reward, self._done, _ = self._env.step(action['action'])
-      self._reward += reward
       self._length += 1
       if self._done and self._logdir:
         self._write_stats(self._length, self._reward)
       if self._done:
         break
+    self._reward += reward
     image = self._env.render(mode='rgb_array', size=self.observation_size)
     return self._obs(image, reward, is_last=self._done)
 
