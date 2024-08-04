@@ -4,6 +4,7 @@ import pathlib
 import sys
 import warnings
 from functools import partial as bind
+import resource
 
 directory = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(directory.parent))
@@ -17,6 +18,12 @@ warnings.filterwarnings('ignore', '.*truncated to dtype int32.*')
 
 import embodied
 from embodied import wrappers
+
+
+def limit_memory(maxsize_gb):
+  soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+  resource.setrlimit(resource.RLIMIT_AS, (maxsize_gb * 1024 * 1024 * 1024, hard))
+  print(f"Memory limit set to {maxsize_gb} GB")
 
 
 def main(argv=None):
@@ -45,6 +52,11 @@ def main(argv=None):
       replay_length=config.replay_length,
       replay_length_eval=config.replay_length_eval,
       replay_context=config.replay_context)
+
+  # Set memory limit if specified in the configuration
+  if 'memory_limit' in config:
+    limit_memory(config.memory_limit)
+
   print('Run script:', args.script)
   print('Logdir:', args.logdir)
 
