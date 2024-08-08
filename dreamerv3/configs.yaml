@@ -7,7 +7,7 @@ defaults:
   eval_dir: ''
   filter: 'score|length|fps|ratio|train/.*_loss$|train/rand/.*/mean'
   tensorboard_videos: True
-  memory_limit: 128
+  memory_limit: 150
 
   replay:
     size: 2.55e6
