@@ -267,6 +267,8 @@ memmaze:
 reach_specific:
   <<: *size12m
   task: robot_ReachSpecificTarget_0to4_Distractors_LargeTargets_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
+  replay:
+    size: 2.6e6
   run:
     num_envs: 1
     num_envs_eval: 1
@@ -280,6 +282,8 @@ reach_specific:
 reach_distinct:
   <<: *size12m
   task: robot_ReachDistinctTarget_2to4_Distractors_LargeTargets_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
+  replay:
+    size: 2.6e6
   run:
     num_envs: 1
     num_envs_eval: 1
