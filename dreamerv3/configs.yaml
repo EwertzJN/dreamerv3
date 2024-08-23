@@ -273,7 +273,7 @@ reach_specific:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 10400000
+    steps: 5200000
     train_ratio: 39.384615384615384615384615384615384615384615384615384615384615384
     save_every: 26000
   enc.spaces: 'image'
@@ -288,7 +288,7 @@ reach_distinct:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 10400000
+    steps: 6500000
     train_ratio: 39.384615384615384615384615384615384615384615384615384615384615384
     save_every: 26000
   enc.spaces: 'image'
@@ -301,7 +301,7 @@ push_specific:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 20400000
+    steps: 16575000
     train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
     save_every: 51000
   enc.spaces: 'image'
@@ -314,7 +314,7 @@ push_distinct:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 20400000
+    steps: 16575000
     train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
     save_every: 51000
   enc.spaces: 'image'
@@ -327,7 +327,7 @@ pick_and_place_specific:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 20400000
+    steps: 16575000
     train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
     save_every: 51000
   enc.spaces: 'image'
@@ -340,7 +340,7 @@ pick_and_place_distinct:
     num_envs: 1
     num_envs_eval: 1
     driver_parallel: False
-    steps: 20400000
+    steps: 16575000
     train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
     save_every: 51000
   enc.spaces: 'image'
