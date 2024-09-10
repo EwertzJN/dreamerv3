@@ -123,7 +123,6 @@ def train(make_agent, make_replay, make_env, make_logger, args):
       logger.write()
 
     if should_save(step):
-      episode = driver.envs[0].env.env.env.env._episode
-      checkpoint.save(logdir / 'checkpoints' / f'checkpoint_{episode}.ckpt')
+      checkpoint.save(logdir / 'checkpoints' / f'checkpoint_{step}.ckpt')
 
   logger.close()
