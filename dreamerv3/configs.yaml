@@ -86,6 +86,7 @@ defaults:
     procgen: {size: [64, 64]}
     loconav: {size: [64, 64], repeat: 2, camera: -1}
     robot: {size: [64, 64], repeat: 2, logs: True, use_logdir: True}
+    metaworld: {size: [64, 64], repeat: 10, logs: True, use_logdir: True}
 
   # Agent
   report: True
@@ -342,6 +343,32 @@ pick_and_place_specific:
 pick_and_place_distinct:
   <<: *size12m
   task: robot_PickAndPlaceDistinctBlock_3to4_Blocks_LargeTarget_LargeObjects_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
+  run:
+    num_envs: 1
+    num_envs_eval: 1
+    driver_parallel: False
+    steps: 16575000
+    train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
+    save_every: 51000
+  enc.spaces: 'image'
+  dec.spaces: 'image'
+
+metaworld_button_press:
+  <<: *size12m
+  task: metaworld_button_press
+  run:
+    num_envs: 1
+    num_envs_eval: 1
+    driver_parallel: False
+    steps: 16575000
+    train_ratio: 40.156862745098039215686274509803921568627450980392156862745098039
+    save_every: 51000
+  enc.spaces: 'image'
+  dec.spaces: 'image'
+
+metaworld_hammer:
+  <<: *size12m
+  task: metaworld_button_press
   run:
     num_envs: 1
     num_envs_eval: 1

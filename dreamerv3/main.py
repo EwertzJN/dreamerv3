@@ -223,6 +223,7 @@ def make_env(config, index, **overrides):
       'memmaze': lambda task, **kw: from_gym.FromGym(
           f'MemoryMaze-{task}-ExtraObs-v0', **kw),
       'robot': 'embodied.envs.robot:MultiRobotEnv',
+      'metaworld': 'embodied.envs.metaworld:MetaWorld',
   }[suite]
   if isinstance(ctor, str):
     module, cls = ctor.split(':')

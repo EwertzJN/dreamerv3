@@ -1,71 +1,75 @@
 import json
 import random
 
+import embodied
 import numpy as np
 
-import embodied
-import visual_block_builder
+import gymnasium
+from gymnasium.core import Env
+from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
+from metaworld.envs import ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE
+
+DEFAULT_CAMERA_CONFIG = {
+  "distance": 1.25,
+  "azimuth": 145,
+  "elevation": -40.0,
+  "lookat": np.array([-0.05, 0.75, 0.0]),
+}
+
+DEFAULT_SIZE = 64
 
 
-class RobotEnv:
-  def __init__(self, env, seed, action_repeat, observation_size):
-    import logging
-    import gym
-    gym.logger.set_level(logging.ERROR)  # Ignore warnings from Gym logger
-    self._env = gym.make(env)
-    self._env.seed(seed)
-    self.action_repeat = action_repeat
-    self.observation_size = observation_size
+class CameraWrapper(gymnasium.Wrapper):
+  def __init__(self, env: Env, seed: int):
+    super().__init__(env)
+
+    self.unwrapped.model.vis.global_.offwidth = DEFAULT_SIZE
+    self.unwrapped.model.vis.global_.offheight = DEFAULT_SIZE
+    self.unwrapped.mujoco_renderer = MujocoRenderer(env.model, env.data, DEFAULT_CAMERA_CONFIG, DEFAULT_SIZE,
+                                                    DEFAULT_SIZE)
+
+    # Hack: enable random reset
+    self.unwrapped._freeze_rand_vec = False
+    self.unwrapped.seed(seed)
 
   def reset(self):
-    self.t = 0  # Reset internal timer
-    _ = self._env.reset()
-    return self._env.render(mode='rgb_array', size=self.observation_size)
+    obs, info = super().reset()
+    return obs, info
 
   def step(self, action):
-    reward = 0
-    for k in range(self.action_repeat):
-      state, reward, done, _ = self._env.step(action)
-      self.t += 1  # Increment internal timer
-      if done:
-        break
-    observation = self._env.render(mode='rgb_array', size=self.observation_size)
-    return observation, reward, done
-
-  def render(self):
-    self._env.render()
-
-  def close(self):
-    self._env.close()
-
-  @property
-  def action_size(self):
-    return self._env.action_space.shape[0]
-
-  @property
-  def action_range(self):
-    return float(self._env.action_space.low[0]), float(self._env.action_space.high[0])
+    next_obs, reward, done, truncate, info = self.env.step(action)
+    return next_obs, reward, done, truncate, info
 
 
-class MultiRobotEnv(embodied.Env):
+def setup_metaworld_env(task_name: str, seed: int):
+  env_cls = ALL_V2_ENVIRONMENTS_GOAL_OBSERVABLE[task_name]
+  env = CameraWrapper(env_cls(render_mode="rgb_array"), seed)
+  return env
 
-  def __init__(self, task, size=(64, 64), logs=False, logdir=None, seed=None, repeat=2):
+
+class MetaWorld(embodied.Env):
+
+  def __init__(self, task, size=(64, 64), logs=False, logdir=None, seed=None, repeat=10):
     self.action_repeat = repeat
     self.observation_size = size
-    self.seed = seed
+    self.seed = random.sample(range(1, 1000000), 1)[0] if seed is None else seed
     self._logs = logs
     self._logdir = logdir and embodied.Path(logdir)
     self._logdir and self._logdir.mkdir()
 
-    self.envs = [task.split('_') for _ in range(int(task.split('_')[1].split('to')[0]), int(task.split('_')[1].split('to')[1]) + 1)]
-    for i in range(int(task.split('_')[1].split('to')[0]), int(task.split('_')[1].split('to')[1]) + 1):
-      index = i - int(task.split('_')[1].split('to')[0])
+    if task == "button_press":
+      self._env = setup_metaworld_env("button-press-v2-goal-observable", self.seed)
+    elif task == "hammer":
+      self._env = setup_metaworld_env("hammer-v2-goal-observable", self.seed)
+    elif task == "box_close":
+      self._env = setup_metaworld_env("box-close-v2-goal-observable", self.seed)
+    elif task == "drawer_close":
+      self._env = setup_metaworld_env("drawer-close-v2-goal-observable", self.seed)
+    else:
+      raise ValueError(f"Unknown task: {task}")
 
-      self.envs[index][2] = str(i) + self.envs[index][2]
-      del self.envs[index][1]
-      self.envs[index] = '_'.join(self.envs[index])
+    self.current_success = 0
 
-    self._env = RobotEnv(self.envs[0], seed, self.action_repeat, self.observation_size)._env
     self._episode = 0
     self._length = None
     self._reward = None
@@ -99,21 +103,21 @@ class MultiRobotEnv(embodied.Env):
       self._episode += 1
       self._length = 0
       self._reward = 0
+      self.current_success = 0
       self._done = False
-      env = random.choice(self.envs)
-      self._env = RobotEnv(env, self.seed, self.action_repeat, self.observation_size)._env
       _ = self._env.reset()
-      image = self._env.render(mode='rgb_array', size=self.observation_size)
+      image = self._env.render()
       return self._obs(image, 0.0, is_first=True)
     for k in range(self.action_repeat):
-      state, reward, self._done, _ = self._env.step(action['action'])
+      _, reward, _, self._done, info = self._env.step(action['action'])
+      self.current_success = min(info['success'] + self.current_success, 1.0)
       self._length += 1
       if self._done and self._logdir:
         self._write_stats(self._length, self._reward)
       if self._done:
         break
     self._reward += reward
-    image = self._env.render(mode='rgb_array', size=self.observation_size)
+    image = self._env.render()
     return self._obs(image, reward, is_last=self._done)
 
   def _obs(self, image, reward, is_first=False, is_last=False, is_terminal=False):
@@ -126,7 +130,7 @@ class MultiRobotEnv(embodied.Env):
     )
     if self._logs:
       log_achievements = {
-          'is_success': self.success()}
+          'is_success': bool(self.current_success)}
       obs.update({k: v for k, v in log_achievements.items()})
     return obs
 
@@ -135,7 +139,7 @@ class MultiRobotEnv(embodied.Env):
         'episode': self._episode,
         'length': length,
         'reward': reward,
-        'is_success': self.success(),
+        'is_success': bool(self.current_success),
     }
     filename = self._logdir / 'stats.jsonl'
     lines = filename.read() if filename.exists() else ''
@@ -143,14 +147,8 @@ class MultiRobotEnv(embodied.Env):
     filename.write(lines)
     print(f'Wrote stats: {filename}')
 
-  def success(self):
-    return bool(self._env.env.success())
-
-  def dist(self):
-    return self._env.env.dist()
-
   def render(self):
-    return self._env.render(mode='rgb_array', size=self.observation_size)
+    return self._env.render()
 
   def close(self):
     self._env.close()
