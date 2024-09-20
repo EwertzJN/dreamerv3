@@ -368,7 +368,7 @@ metaworld_button_press:
 
 metaworld_hammer:
   <<: *size12m
-  task: metaworld_button_press
+  task: metaworld_hammer
   run:
     num_envs: 1
     num_envs_eval: 1
