@@ -301,6 +301,36 @@ reach_distinct:
   enc.spaces: 'image'
   dec.spaces: 'image'
 
+reach_specific_relative:
+  <<: *size12m
+  task: robot_ReachSpecificRelativeTarget_0to4_Distractors_LargeTargets_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
+  replay:
+    size: 2.6e6
+  run:
+    num_envs: 1
+    num_envs_eval: 1
+    driver_parallel: False
+    steps: 8840000
+    train_ratio: 39.384615384615384615384615384615384615384615384615384615384615384
+    save_every: 26000
+  enc.spaces: 'image'
+  dec.spaces: 'image'
+
+reach_distinct_groups:
+  <<: *size12m
+  task: robot_ReachDistinctGroupsTarget_4to4_Distractors_LargeTargets_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
+  replay:
+    size: 2.6e6
+  run:
+    num_envs: 1
+    num_envs_eval: 1
+    driver_parallel: False
+    steps: 8840000
+    train_ratio: 39.384615384615384615384615384615384615384615384615384615384615384
+    save_every: 26000
+  enc.spaces: 'image'
+  dec.spaces: 'image'
+
 push_specific:
   <<: *size12m
   task: robot_PushSpecificBlock_1to4_Blocks_LargeTarget_LargeObjects_DenseReward_DictstateObs_FrontviewViewpointDefaultRobot-v1
